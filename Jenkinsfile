@@ -47,18 +47,13 @@ pipeline {
         // STAGE 5: Smoke Test ← ONLY THIS ONE FIXED (100% stable, no more abort)
         stage('Smoke Test') {
             steps {
-                echo "--- Etape 5: Smoke Tests ---"
-                script {
-                    // Backend check (max 120 seconds)
-                    timeout(time: 120, unit: 'SECONDS') {
-                        waitUntil(initialRecurrencePeriod: 3000) {
-                            script {
-                                def ok = bat(script: 'curl -f -s http://localhost:8000 >nul 2>&1', returnStatus: true) == 0
-                                echo ok ? "Backend (8000) est prêt" : "En attente du backend..."
-                                return ok
-                            }
-                        }
-                    }
+               bat """
+                docker run -d --name todo_backend -p 8000:80 %IMAGE%:%TAG%
+                ping -n 3 127.0.0.1 > nul
+               curl -I http://localhost:8000 | find "200 OK"
+                                     """
+                 }
+                           }
 
                     // Frontend check (max 90 seconds)
                     timeout(time: 90, unit: 'SECONDS') {
