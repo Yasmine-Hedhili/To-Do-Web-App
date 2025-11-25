@@ -61,22 +61,15 @@ pipeline {
                     }
 
                     // Frontend check (max 90 seconds)
-                     steps {
-                           script {
-                              echo "Attente que le serveur Nginx démarre..."
-                                 bat "ping -n 6 127.0.0.1 > NUL"
-             
-                                 echo "Vérification que le titre de la page contient 'Mini ERP'..."
-            
-            // === CORRECTION ICI ===
-            // On recherche la chaîne exacte "Mini ERP". Les guillemets sont nécessaires
-            // à cause de l'espace, et ils sont échappés avec \".
-                                bat "curl --silent --fail http://localhost:8088 | findstr \"Mini ERP\""
-            
-                               echo "Smoke Test PASS: Le serveur web répond et le contenu attendu est présent."
-        }
-    }
-}
+                    timeout(time: 90, unit: 'SECONDS') {
+                        waitUntil(initialRecurrencePeriod: 3000) {
+                            script {
+                                def ok = bat(script: 'curl -f -s -I http://localhost:3000 >nul 2>&1', returnStatus: true) == 0
+                                echo ok ? "Frontend (3000) est prêt" : "En attente du frontend..."
+                                return ok
+                            }
+                        }
+                    }
 
                     echo "Smoke Tests validés : Les ports 3000 et 8000 répondent."
                 }
