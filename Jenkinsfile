@@ -48,7 +48,8 @@ pipeline {
         stage('Smoke Test') {
             steps {
                bat """
-                docker run -d --name todo_backend -p 8000:80 %IMAGE%:%TAG%
+               
+                docker run -d -p 8000:80 --name monappdev todo_backend
                 ping -n 3 127.0.0.1 > nul
                curl -I http://localhost:8000 | find "200 OK"
                                      """
